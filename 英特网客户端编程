@@ -1,0 +1,118 @@
+    使用套接字的底层网络通信协议类型的网络是当今因特网中大部分客户端/服务器协议的核心。这些网络协议分别用文件传输（FTP、SCP等）,阅读Usenet新闻组（NNTP）、发送电子邮件（SMTP）、从服务器上下载电子邮件（POP3、IMAP）等。这些协议的工作方式同客户端/服务器的例子相似，唯一区别在于现在使用的TCP/IP这样的底层的协议创建了新的、有专门用途的协议，以此来实现那些高层服务。
+    将因特网理解为用来传输数据的地方，数据在服务提供者和服务使用者之间传输。在某些情况下称为“生产者和消费者”。对于特定的服务，一般只有一个服务器（即进程或主机等），但有多个消费者。
+    
+    文件传输（文件传输因特网协议）
+    英特网中最常见的事情就是传输文件，文件传输每时每刻都在发生。有很多协议可以用于在网上传输文件。最流行的包括FTP文件传输协议，UNIX到UNIX文件复制协议UUCP、用于web的超文本传输协议HHTP。另外还有UNIX下远程复制命令rcp（以及更灵活安全的scp和rsync）
+    
+    文件传输协议
+    File Transfer Protocol，FTP协议，主要用于匿名下载公共文件，也可以用于在两台计算机之间传输文件，特别是在windows上进行工作，而文件存储系统使用UNIX的情况下。FTP要求输入用户名和密码才能访问远程FTP服务器，但也允许没有账号的用户匿名登录。不过管理员要先设置FTP服务器允许匿名用户登录。与登录用户相比匿名用户只能使用有限的几个FTP命令。
+    在底层，FTP只使用TCP，而不是使用UDP，另外可以将FTP看作客户端/服务器编程中的特殊情况。因为这里的客户端和服务器都使用两个套接字来通信：一个是控制和命令端口（21号端口），另一个是数据端口（有时是20号端口），“有时”是因为FTP有两种模式：主动和被动。只有主动模式下服务器才使用数据端口。在服务器把20号端口设置为数据端口后，它“主动”连接客户端的数据端口。而被动模式下，服务器只是告诉客户端随机的数据端口，客户端必须主动建立数据连接。
+    
+    Python 和 FTP
+    1.连接到服务器
+    2.登录
+    3.发出服务请求（希望能得到响应）
+    4.退出
+    导入ftplib模块
+    伪代码：
+            from ftplib import FTP
+            f = FTP("some.ftp.server')
+            f.login('anonymous','your@email.address')
+            ...
+            f.quit()
+    ftplib.FTP 类方法
+            login(user = 'name',passwd = 'password',acct='') 登录FTP服务器，所有参数都是可选的
+            pwd() 获取当前工作目录
+            cwd(path) 把当前工作目录设置为path所示的路径
+            dir([path[,...[,cb]]])显示path目录里的内容，可选的参数cb是一个回调函数，会传递给retrlines()方法
+            nlst([path[,...]]) 与dir相似，返回一个文件名列表，而不是显示这些文件名
+            retrlines(cmd[,cb]) 给定FTP命令（如'RETR filename'）用于下载文本文件。可选的回调函数cb用于处理文件的每一行
+            retrbinarg(cmd,cb[,bs=8192[,ra]]) 与retrlines()类似，只是这个指令处理二进制文本。回调函数cb用于处理每一块(块大小默认为8KB)下载的数据
+            storlines(cmd,f) 给定FTP命令（如"STOR filename"）用来上传文本文件。要给定一个文件对象f
+            storbinary(cmd,f[,bs=8192]) 与storlines类似，只是这个指令处理二进制文件。要给定一个文件对象f，上传块的大小bs默认为8KB
+            rename(old,new)把远程文件old重命名为new
+            delete(path)删除位于path的远程文件
+            mkd(directory) 创建远程目录
+            rmd(directory) 删除远程目录
+            quit() 关闭并退出连接
+            
+     网络新闻
+     Usenet与新闻组：usenet新闻系统是一个全球存档的‘电子公告板’。各种主题的新闻组一应俱全，从诗歌到政治，从自然语言到计算机语言，从软件到硬件，从种植到烹饪、招聘/应用、音乐、魔术等。新闻组可以面向全球，也可以只面向某个特定区域。整个系统是一个由大量计算机组成的庞大的全球网络，计算机之间共享Usenet上的帖子。如果某个用户发了一个帖子到本地的Usenet计算机，这个帖子会被传播到其他连接的计算机上，再由这些计算机传到与它们相连的计算机上，直到这个帖子传播到了全世界，每个人都收到这个帖子为止。帖子在Usenet上的存活时间是有限的，这个时间可以由Usenet系统管理员来指定，也可以为帖子指定一个过期的日期/时间。
+     老的Usenet使用UUCP作为网络传输机制，现在的论坛替代老的usenet主要使用TCP/IP协议。
+     网络新闻传输协议NNTP
+     作为客户端/服务器架构的另一个例子，NNTP与FTP操作方式相似，但更简单。在FTP中，登录、传输数据和控制需要使用不同的端口，而NNTP只使用一个标准端口119来通信，用户向服务器发送一个请求，服务器就会做出相应。
+     
+     Python 和NNTP
+     1.连接到服务器
+     2.登录
+     3.发出请求
+     4.退出
+     导入nntplib模块
+     伪代码：
+             from nntplib import NNTP
+             n = NNTP('your nntp server')
+             r,c,f,l,g = n.group()#电泳group 选择新闻组，返回服务器的回复、文章数量、第一篇和最后一篇的ID、新闻组名字
+             ...
+             n.quit()
+             
+     电子邮件
+     电子邮件系统组件和协议
+     最重要的组件是消息传输代理MTA，这是在邮件交换主机上运行的服务器进程，它负责邮件的路由、队列处理和发送工作。MTA就是邮件从发送主机到接收主机所经过的主机和跳板，所以称为消息传输的代理。
+     要让所有这些工作起来，MTA要知道两件事情：1）如何找到消息应用该到达的下一站MTA；2）如何与另一台MTA通信。第一件事由域名服务（DNS）来查找目的域名的MX（mailXchange,邮件交换）来完成。查找到的可能不是最终收件人，而可能只是下一个最终把消息送到目的地的主机。
+     
+     发送电子邮件，邮件客户端必须要连接到一个MTA，MTA靠协议进行通信。MTA之间通过消息传输协议MTS通信。只有两个MTA都使用这个协议，才能进行通信。
+     SMTP（简单邮件传输协议）
+     
+     SMTP、ESMTP、LMTP
+     SMTP是Simple Mail Transfer Protocol ；LMTP（Local Mail Transfer Protocol 本地邮件传输协议）
+     
+     一些实现SMTP的MTA如下：
+         开源MTA：Sendmail
+                  Postfix
+                  Exim
+                  qmail
+         商业MTA：Microsoft Exchange
+                  Lotus Notes Domino Mail Server
+     
+     Python 和 SMTP
+     有一个smtplib模块
+     伪代码:
+              from smtplib import SMTP
+              n = SMTP('smtp.yourdomain.com')
+              ...
+              n.quit()
+     主要的两个方法：sendmail(),quit()
+     sendmail()的所有参数都遵循邮件地址必须要有正确的格式，消息正文要有正确的前导标题，正文必须由回车和换行符对分隔（消息的正文不是必需的）
+     
+     SMATP对象常见的方法
+     sendmail(from,to,msg[,mopts,ropts])将msg 从from 发送至to（以列表或元祖表示）,还可以选择性地设置ESMTP邮件（mopts）和收件人（ropts）选项
+     ehlo()或helo() 使用EHLO或HELO()初始化SMTP或ESMTP服务器的会话，这是可选的，因为sendmail会自动调用
+     starttls(keyfile=Note,certfile=None) 让服务器启用TLS模式，如果给定了keyfile或certfile，则它们用来创建安全套接字
+     set_debuglevel(level)为服务器通信设置调试级别
+     quit() 关闭连接并退出
+     login(user,passwd) 使用用户名和密码登录SMTP服务器
+     
+     接收电子邮件，在家中电脑运行的应用程序叫邮件用户代理(Mail User Agent,MUA).MUA从服务器上下载邮件，在这个过程中可能会自动删除它们（也可能不删除，留在服务器上，让用户手动删除）。不过MUA也必须要能发送邮件。也就是说，在发送邮件的时候，应用程序要能直接使用SMTP与MTA通信。
+     POP和IMAP用于邮件下载的客户端协议
+     POP（邮局协议） IMAP是提供比POP更完整的解决方案，但它也因此比POP复杂。IMAP更适合现在的复杂的系统
+     
+     Python 和POP3
+     导入poplib模块
+     伪代码：
+             from poplib import POP3
+             p = POP3('pop.python.is.cool')
+             p.user(...)
+             p.pass(...)
+             ...
+             p.quit()
+     poplib.POP3类方法
+     POP3提供了许多类用来下载和离线管理邮箱，登录是user()方法向服务器发送用户名，等待并显示服务器的响应，表示服务器正在等待用户输入密码。如果pass_() 方法验证失败，会引发一个poplib.error_proto异常。如果成功，会得到一个以+号开头的应答，直到quit()方法被调用才结束
+     POP3对象的方法
+     user(login) 向服务器发送登录名，并显示服务器的响应，表示服务器正在等待输入用户的密码
+     pass_(passwd)发送password登录
+     stat()返回邮件状态，一个长度为2的元组(msg_ct,mbox_siz),分别表示消息的数量和消息的总大小（字节数）
+     list([msgnum]) stat()扩展，从服务器返回以三元组表示的整个消息列表(rsp,msg_list,rsp_siz)，分别为服务器的响应、消息列表、返回消息的大小。如果给定msgnum，则只返回指定消息的数据
+     retr(msgnum)从服务器中得到消息的msgnum，并设置已读
+     dele(msgnum)把消息msgnum标记删除，大多数服务器在执行quit()后执行删除操作
+     quit()注销
+            

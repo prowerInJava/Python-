@@ -1,0 +1,146 @@
+客户端/服务器架构
+    服务器就是一系列硬件或软件，为一个或多个客户端（服务的用户）提供所需要的“服务”。它存在的唯一目的就是等待客户端的请求，并响应它们（提供服务），然后等待更多的请求
+    客户端因特定的请求而联系服务器，并发送必要的数据，然后等待服务器的回应，最后完成请求或给出故障的原因。服务器无限的运行下去，并不断的处理请求；而客户端会对服务进行一次性请求，然后接收该服务，最后结束它们之间的事物。客户端在一段时间后可能会再次发出请求，但这些都被当作不同的事物。
+    在服务器响应客户端请求之前，必须进行一些初步的设置流程来为之后的工作做准备。首先会创建一个通信端点，它能使服务器监听请求。客户端所需要做的只是创建它的单一通信端点，然后建立一个到服务器的连接。然后，客户端就可以发出请求，该请求包括任何必要的数据交换。一旦请求被服务器处理，且客户端收到结果或某种信息，此次通信就会被终止。
+    
+套接字：通信端点socket
+    套接字是计算机网络数据结构，在任何类型的通信开始之前，网络应用程序必须创建套接字。两种类型的套接字：基于文件的和面向网络的。
+    Python只支持AF_UNIX、AF_NETLINK、AP_TIPC和AF_INETF，网络编程重点使用AF_INET。
+    套接字地址：主机--端口对，一个网络地址由主机名和端口对组成，这是网络通信所需要的。
+    有效的端口号范围是0~65535(尽管小于1024的端口号预留给了系统)
+    
+    面向连接的套接字，表示在进行通信之前必须建立一个连接。面向连接的通信提供序列化、可靠的和不重复的数据交付，而没有记录边界。这基本上意味着每条消息可以拆分成多个片段，并且每一条消息片段都确保能够到达目的地，然后将它们按顺序组合在一起，最后将完整消息传递给正在等待的应用程序。
+    实现这中类型的主要协议是传输控制协议（TCP），必须使用SOCK_STREAM作为套接字类型。
+    
+    无连接的套接字，数据报类型的套接字，是一种无连接的套接字，这意味着，在通信开始之前并不需要建立连接。此时，在数据传输过程中无法保证它的顺序性、可靠性或重复性。然而，数据报确实保存了记录边界，这意味着消息是以整体发送的，并非首先分段发送。
+    
+    由于面向连接的套接字所提供的保证，因此它们的设置以及对虚拟电路连接的维护需要大量的开销。然而，数据报不需要这些开销，即它的成本更加“低廉”。因此，它们通常能提供更好的性能，并且可能适合一些类型的应用程序。实现这种连接类型的主要协议是用户数据报协议（UDP），为了创建UDP套接字，必须使用SOCK_DGRAM作为套接字类型。
+    
+Python中的网络编程
+    socket()函数，该函数创建套接字对象。
+    创建套接字，使用socket.socket()模块
+    socket(socket_family,socket_type,protocol=0)
+    其中socket_family是AF_UNIX或AF_INET，socket_type是SOCK_STREAM或SOCK_DGRAM，protocol通常省略，默认为0，
+    例如：tcpSock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+          udpSock = socket.socket(socket.AF_INET,socket.sock_DGRAM)
+          
+          from socket import *
+          tcpSock = socket(AF_INET,SOCK_STREAM)
+          
+    套接字内置方法：
+    服务器端套接字方法：socket.bind()将地址（主机名，端口号）绑定到套接字上
+                        socket.listen()设置并启动TCP监听器
+                        socket.accept()被动接收TCP客户端连接，一直等待直到连接到达
+    客户端套接字方法：  socket.connect()主动发起tcp服务器连接
+                        socket.connect_ex()connect的拓展版本，此时会以错误码的形式返回问题，而不是抛出一个异常
+    普通的套接字方法：  socket.recv() 接收tcp消息
+                        socket.recv_into()接收tcp消息到指定缓冲区
+                        socket.send()发送tcp消息
+                        socket.sendall()完整地发送TCP消息
+                        socket.recvfrom()接收UDP消息
+                        socket.recvfrom_into()接收UDP消息到指定缓冲区
+                        socket.sendto()发送UDP消息
+                        socket.getpeername()连接到套接字（TCP）的远程地址
+                        socket.getsockname()当前套接字的地址
+                        socket.getsockopt()返回给定套接字选项的值
+                        socket.setsockopt()设置给定套接字选项的值
+                        socket.shutdown()关闭连接
+                        socket.datach()在未关闭文件描述符的情况下关闭套接字，返回文件描述符
+                        socket.ioctl()控制套接字的模式（仅支持Windows）
+     面向阻塞的套接字方法
+                        socket.setblocking()设置套接字的阻塞或非阻塞模式
+                        socket.settimeout()设置阻塞套接字操作的超时时间
+                        socket.gettimeout()获取阻塞套接字操作的超时时间
+     面向文件的套接字方法：
+                        socket.fileno()套接字的文件描述符
+                        socket.makefile()创建与套接字关联的文件对象
+     数据属性：         
+                        socket.family()套接字家族
+                        socket.type()套接字类型
+                        socket.proto()套接字协议
+                        
+     创建TCP服务器的伪代码
+                        ss = socket() #创建服务器套接字
+                        ss.bind()     #套接字与地址绑定
+                        ss.listen()   #监听连接
+                        inf_loop:     #服务器无限循环
+                            cs = ss.accept() #接受客户端连接
+                            comm_loop: #通信循环
+                                cs.recv()/cs.send() #对话（接收\发送）
+                            cs.close() #关闭客户端套接字
+                        ss.close()
+      所有的套接字都是通过使用socket.socket()函数创建的，因为服务器需要占用一个端口并等待客户端的请求，所以它们必须绑定到一个本地地址。
+      调用accept()函数之后，就开启了一个简单的单线程服务器，默认情况下accept()是阻塞的，这意味着执行将被暂停，直到一个连接到达。
+      一旦服务器接收到一个连接，就会返回（利用accept()）一个独立的客户端套接字，用来与即将到来的消息进行交换。当请求到达时，服务器会创建一个新的通信端口来直接与客户端通信，再次空出主要的端口，以使其能够接受新的客户端连接。
+      
+      创建TCP客户端伪代码
+                        cs = socket() #创建客户端套接字
+                        cs.connect()  #尝试连接服务器
+                        comm_loop:    #通信循环
+                             cs.send()/cs.recv() #对话（发送或接收）
+                        cs.close()
+      所有的套接字都是通过使用socket.socket()函数创建的，一旦客户端拥有了一个套接字，它就可以利用套接字的connect()方法直接创建一个到服务器的连接。当连接建立以后，它就可以参与到与服务器的一个对话中。最后，一旦客户端完成了它的事物，它就可以关闭套接字，终止此次连接。
+      
+      创建UDP服务器的伪代码
+      UDP服务器不需要TCP服务器那么多设置，因此它们不是面向连接的。除了等待传入的连接之外，几乎不需要做其他工作。
+                        ss = socket() #创建服务器套接字
+                        ss.bind()     #绑定服务器套接字
+                        inf_loop:     #服务器无限循环
+                            cs = ss.recvfrom()/ss.sendto()#接收or发送
+                        ss.close()    #关闭服务器套接字
+       UDP 和 TCP服务器之间存在另一个显著差异是，因为数据报套接字是无连接的，所以就没有为了成功通信而使一个客户端连接到一个独立的套接字“转换”的操作。这些服务器仅接受消息并有可能回复数据。
+       
+       创建UDP客户端的伪代码
+                        cs = socket()
+                        comm_loop:
+                             cs.sendto()/cs.recvfrom()
+                        cs,close()
+        一旦创建了套接字，就进入了对话循环之中，在这里我们与服务器交换消息。最后，当通信结束时，就会关闭套接字。
+        
+        
+    socket模块属性：
+    数据属性：          AF_UNIX,AF_INET,AF_INET6,AF_NETLINK,AF_TIPC python中支持的套接字地址家族
+                        SOCK_TREAM,SOCK_DGRAM 套接字类型（TCP=流，UDP=数据报）
+                        has_ipv6 指示是否支持IPv6的布尔标记
+    异常：              error套接字相关错误
+                        herror主机和地址相关错误
+                        gaierror地址相关错误
+                        timeout超时时间
+    函数：              socket() 以给定的地址家族、套接字类型和协议类型（可选）创建一个套接字对象
+                        socketpair()以给定的地址家族、套接字类型和协议类型（可选）创建一个套接字对象
+                        create_connection()常规函数，它接收一个地址（主机名，端口号）对，返回套接字对象
+                        fromfd()以一个打开的文件描述符创建一个套接字对象
+                        ssl()通过套接字启动一个安全套接字层连接；不执行证书验证
+                        getaddrinfo()获取一个五元组序列形式的地址信息
+                        getnameinfo()给定一个套接字地址，返回（主机名，端口号）二元组
+                        getfqdn()返回完整的域名
+                        gethostname()返回当前主机名
+                        gethostbyname()将一个主机名映射到它的IP地址
+                        gethostbyname_ex()是gethostbyname()的扩展版本，返回主机名，别名主机集合和IP地址列表
+                        gethostbyaddr()将一个IP地址映射到DNS信息；返回gethostbyname_ex()相同的3元祖
+                        getprotobyname()将协议名（如'tcp'）映射到一个数字
+                        getservbyname()/getservbyport()将一个服务映射到一个端口号，或者反过来；对于任何一个函数来说，协议名都是可选的
+                        ntohl()/ntohs()将来自网络的整数转换为主机字节顺序
+                        htonl()/htons()将来自主机的整数转换为网络字节顺序
+                        inet_aton()/inet_ntoa()将IP地址八进制字符串转换为32位的包格式，或者反过来(仅用于IPv4地址)
+                        inet_pton/inet_ntop() 将IP地址字符串转换成打包的二进制格式，或者反过来（同时适用于IPv4和IPv6地址）
+                        getdefaulttimeout()/setdefaulttimeout()以秒（浮点数）为单位返回默认套接字超时时间；以秒为单位设置
+    
+    socketserver模块
+    socketserver是标准库中的一个高级模块，它的目的是简化很多样板代码，它们是创建网络客户端和服务器所必须的代码。
+    socketserver除了为你隐藏了实现细节之外，另外我们使用类来编写应用程序。因为以面向对象的方式处理事务有助于组织数据，以及逻辑性地将功能放在正确的地方。应用程序是时间驱动的，这意味着只有在系统中的事件发生时，它们才会工作。
+    socketserver 模块类
+                        BaseServer 包含核心服务器功能和mix-in类的钩子；仅用于推导，这样不会创建这个类的实例；可以用TCPServer或UDPServer类创建实例
+                        TCPServer/UDPServer 基础的网络同步TCP/UDP服务器
+                        UnixStreamServer/UnixDatagramServer 基于文件的基础同步TCP/UDP服务器
+                        ForingMixIn/ThreadingMixIn 核心派出或线程功能；只用作mix-in类与一个服务器类配合实现一些异步性；不能直接实例化这个类
+                        ForkingTCPServer/ForkingUDPServer ForkingMixIn和TCPServer/UDPServer的组合
+                        ThreadingTCPServer/ThreadingUDPServer ThreadingMixIn和TCPServer/UDPServer的组合
+                        BaseRequestHandler 包含处理服务请求的核心功能；仅仅用于推导，这样无法创建这个类的实例；可以使用StreamRequestHandler或DatagramRequestHandler创建类的实例
+                        StreamRequestHandler/DatagramRequestHandler 实现TCP/UDP服务器的服务处理
+    事件包括消息的发送和接收。事实上类定义只包括一个用来接收客户端消息的事件处理程序。
+    在原始服务器循环中，我们阻塞等待请求，当接收到请求时就对其提供服务，然后继续等待。在此处的服务器循环中，并非在服务器中创建代码，而是定义一个处理程序，这样当服务器接收到一个传入的请求时，服务器就可以调用你的函数。
+    
+Twisted 框架介绍
+    Twisted是一个完整的事件驱动的网络框架，利用它既能使用也可以开发完整的异步网络应用程序和协议。
+    与serversocket类似，Twisted的大部分功能都存在与它的类中。

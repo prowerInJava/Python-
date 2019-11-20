@@ -58,4 +58,26 @@ GUI的东西应该会很难。它甚至可以塑造性格。
     偏函数最好的一点是它不只局限于函数。偏函数可以用于可调对象（任何包括函数接口的对象），只需要通过使用括号即可，包括类、方法或可调用实例。对于有很多可调用对象，并且许多调用都反复使用相同参数的情况，使用偏函数会非常合适。
     GUI编程是一个很好的偏函数用例，因为你很可能需要GUI控件外观上具有某种一致性，而这种一致性来自于使用相同参数创建相似对象时。我们现在要实现一个应用，在这个应用中有很多按钮拥有相同的前景色和背景色。对于这种只有细微差别的按钮，每次都使用相同的参数创建相同的实例简直是一种浪费；前背景色都是相同的，只有文本有一点不同。
     实例：路标偏函数（5.3.5）
+    中级tkinter 实例（5.3.6）这个应用是一个目录遍历工具。它会从当前目录开始，提供一个文件列表。双击列表中任意其他目录，就会使得工具切换到新目录中，用新目录的文件列表代替旧文件列表。
+    
+    其他GUI简介：
+    python4个流行的工具包:Tix（Tk接口拓展），Pmw、wxPython以及PyGTK。
+    Tix模块已经包含在Python标准库中了，而其他几个则是第三方模块，需要自行下载。因为Pmw只是Tkinter的一个拓展，所以它是最容易安装的（只需要解压到sitepackages）文件夹即可。WxPython与PyGTK涉及多个文件的下载和编译（除非选择win32版本有二进制安装包）。一旦工具包安装并得到验证，就可以开始了。除了Label和Button外，这里还会介绍Control（即SpinButton）和ComboBox。Control控件由一个文本控件和一组靠近的箭头组成，文本控件中的值可以被附近的一组箭头按钮“控制”或“上下调整”。ComboBox控件通常是由一个文本控件和一个下拉选项菜单组成的，列表中当前选定的条目会显示在文本控件中。
+    
+    python3 中导入tix：from tkinter.tix import Tk,Control,ComboBox
+    python3 中导入ttk：from tkinter.ttk import Style,Label,Button,Combobox
+    Style().configure('TButton',foreground='white',background='red')
+    
+    py2 与 py3 中tkinter 的变化：
+    Tkinter  ---> tkinter
+    tkMessageBox ---> tkinter.messagebox
+    tkColorChooser ---> tkinter.filedialog
+    tkCommonDialog ---> tkinter.commondialog
+    tkSimpleDialog ---> tkinter.simpledialog
+    tkFont ---> tkinter.font
+    Tkdnd ---> tkinter.dnd
+    ScrolledText ---> tkinter.scrolledtext
+    Tix ---> tkinter.tix
+    Ttk ---> tkinter.ttk
+    
     

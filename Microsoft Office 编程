@@ -1,0 +1,19 @@
+MIcrosoft Office 编程
+学习使用Python进行COM客户编程，从而能够控制诸如Word、Excel、PowerPoint和Outlook等Microsoft office应用，并能够与之进行通信。COM是一个服务，通过该服务可以使PC应用与其他应用进行交互。COM客户编程可以驱动这些应用。
+让python程序员学会如何创建COM客户端来自动执行任务，比如，生成excel表格、创建word文档、使用PPT建立幻灯片以及通过Outlook发送邮件等。
+
+    使用Python进行COM客户端编程
+    1.启动应用
+    2.添加合适的文档以工作（或载入一个已经存在的文档）
+    3.使应用课件
+    4.执行文档所需的所有工作
+    5.保存或放弃文档
+    6.退出
+    
+    入门示例：
+    Excel，Word，PowerPoint，Outlook
+    win32.gencache.EnsureDispatch('%s.Application'% app)  启动一个office程序
+    excel中写入的是单元格
+    word中写入的是文本，要使光标移动至下一行需要使用换行符\r\n
+    在应用中使用PowerPoint并不常见，COM接口可以为幻灯片添加背景、动画等
+    

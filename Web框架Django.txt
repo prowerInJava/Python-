@@ -1,0 +1,283 @@
+Web框架:Django
+Python 是唯一一种web框架比语言关键字多的语言
+web框架目标在于帮组开发者简化工作，如提供一些功能来完成一些通用任务，或提供一些资源来用于降低创建、更新、执行或扩展应用的工作量。
+web服务器解决方案：Apache、ligHTTPD或Nginx。有些服务器如Pylons 和 CherryPy，拥有自己的框架生态系统。但服务方面的内容只是创建web应用的一个方面。还需要一些辅助工具如，JavaScript框架、对象关系映射器（ORM）或底层数据库适配器。还有与web不相关的其他类型的开发需要的工具，如单元测试和持续继承框架。Python web可以是单个或多个子组件，也可以是一个完整的全栈系统。
+Django可以作为一个全能解决方案（除了没有内置JavaScript库，这样可以自由的选择相应的库）
+
+Django自称是“能够很好地应对应用上线期限的web框架”。其最初在21世纪初发布。
+11.3.1 安装：
+Apache 是web 服务器中的王者，因此大多数部署都会使用这款服务器。Django团队建议使用mod_wdgi这个Apache模块
+1.Python 包管理工具
+2.操作系统包管理工具
+3.官方发布的压缩包
+4.源码库
+最简单的下载和安装方式是使用Python 包管理工具，如Setuptools 中easy_install(http://packages.python.org/distribute/easy_install.html),或pip，所有平台上都可以使用这两个工具。对于Windows用户，使用Setuptools时需要将easy_install.exe文件放到Python安装目录的Scripts文件夹中。此时只需在DOS命令行窗口中使用一条命令就能安装Django
+easy_install django
+在UNIX、LINUX、MACOS中easy_install 安装之后都会在usr/local/bin 或 usr/bin 目录下面只需要 sudo easy_install django 或 pip3 install django
+
+使用在UNIX、LINUX、MACOS中系统自带的包管理工具（前提是系统要有包管理工具）
+Linux： sudo COMMAND install django   COMMAND 是指：apt-get 、 yum 、aptitude等
+Macos： sudo port install django
+
+使用Django官网下载的压缩包安装，下载解压之后，执行sudo python3 setup.py install
+
+从Pinax 平台上能找到比较著名的可重用的Django应用。其中包括（但不限于）验证模块（OpenID支持、密码管理等）、消息处理（Email验证、通知、用户间联系、兴趣小组、主题讨论等），以及其他功能，如项目管理、博客、标签、导入联系人等。关于Pinax的更多内容可以访问其官网：http://pinaxproject.com
+
+在Django中创建项目
+Django 带有一个django-admin.py的工具，它可以简化任务，如创建前面提到的项目目录。在POSIX平台上，它一般会安装到usr/local/bin 或 usr/bin这样的目录中。如果使用windows系统，它会安装到Scripts文件夹下。
+命令：django-admin.py startproject [项目的路径及名称]
+cd [项目的路径及名称]
+ls -l 就能看到创建的内容
+
+基本的项目包含四个文件__init__.py mange.py  settings.py  urls.py
+__init__.py 告诉python这是一个软件包
+urls.py     全局URL配置
+settings.py 项目相关的配置
+manage.py   应用的命令行接口
+
+运行开发服务器
+最方便的是Django内置的web服务器，该服务器运行在本地，专门用于开发阶段。注意，这里强烈建议不要用这个服务器部署公开页面，因为其仅用于开发阶段
+1.使用开发服务器，可以直接运行与测试项目和应用，无需完整的生产环境。
+2.当改动Python源码文件并重新载入模块时，开发服务器会自动检测。这样既能节省时间，也能方便地使用系统，无须每次编辑后手动重启
+3.开发服务器知道如何为Django管理应用程序寻找和显示静态媒体文件，所以无须立即了解管理方面的内容
+通过项目中的manage.py 工具，可以使用命令运行开发服务器，默认运行在8000端口
+python3 ./manage.py runserver
+python3 manage.py runserver
+如果需要运行在指定端口，只需要在运行时指定端口号 python3 ./manage.py runserver 8080
+
+既然拥有了一个项目，就可以在其中创建应用了。创建一个博客应用：
+./manmage.py startapp blog   会在项目文件夹下出现一个bolg目录，包含四个文件：__init__.py models.py tests.py views.py urls.py
+models.py 数据模型
+views.py  视图模型
+test.py   单元测试
+models.py 和 views.py 和tests.py文件中暂时还没有真正的代码，需要开发者在后续自己添加代码。
+同样即使可以使用项目的URLconf来分配访问，也不会自动创建本地应用的URLconf。需要手动创建它，接着使用项目URLconf 里的incloud()指令将请求分配给应用的URLconf。
+为了让Django知道这个新的应用是项目的一部分，需要编辑settings.py。在settings.py 文件找到底部的INSTALLED_APPS这个元组。将应用名称（blog）添加到元组的末尾，
+INSTALLED_APPS = (
+    ....,
+    ....,
+    'blog',
+)
+
+创建模型来添加数据库服务
+现在接触到了基于Django的博客系统的核心：models.py 文件。在这里将定义博客的数据结构。遵循的规则是“不要自我重复”（DRY）原则，Django可以从为应用提供的模型信息获取很多好处。首先创建一个基本模型，接着来看Django使用这些信息自动创建的内容。
+数据模型表示将存储在数据库每条记录中的数据类型。Django提供了许多字段，用来将数据映射到应用中。
+打开models.py 文件
+from django.db import models
+class BlogPost(models.Model):
+    title = models.CharField(max_length=150)
+    body = models.TextField()
+    timestamp = models.DateTimeField()
+    
+这里定义了一个bolg对象，有三个字段 title ，body ， timestamp    
+还有一个Django默认的字段，该字段会自动递增，且每个模型中唯一。
+使用CharField作为博文的title，并限制了该字段的最大长度。CharField可用于较短的单行文本。对于较长的文本，使用TextField类型。DateTimeField类型，使用的是python的datetime.datetime
+django.db.models 中还有其他字段类型，如BooleanField和XMLField字段
+
+设置数据库：
+在项目的settings.py 文件中设置数据库
+以MySql为例：
+DATABASES = {
+    'default': {
+        'ENGINE':'django.db.backends.mysql',
+        'NAME':'testdb',
+        'USER':'wesley',
+        'PASSWORD':'sfdjk4dlfkJ',
+        'HOST':'',
+        'PORT':'',
+    }
+}
+没有指定PORT值，表示MYSQL运行在了默认端口上
+HOST留空表示，项目与数据库在同一台主机上运行
+
+使用SQLite，一般用于测试。SQLite 没有主机、端口、用户、密码等信息。因为SQLite使用本地文件夹存储数据，使用本地系统的访问权限就是数据库的访问控制。SQLite不仅可以使用本地文件，还可以使用存内存数据库。
+DATABASES = {
+    'default': {
+        'ENGINE':'django.db.backends.sqlite3',
+        'NAME':'/tmp/mysite.db', #使用完整的数据库路径和名称
+    }
+}
+windows用户使用SQLite，可以在django目录下，创建一个db目录
+DATABASES = {
+    'default': {
+        'ENGINE':'django.db.backends.sqlite3',
+        'NAME':r'C:\py\django\db\mysite.db', #使用完整的数据库路径和名称
+    }
+}
+
+创建表：
+    现在需要通知Django使用上面的连接数据库，设置应用程序需要的表
+使用manage.py 和其中的syncdb命令，
+./manage.py syncdb  在django 1.9.5 之后无效，需要使用python manage.py makemigrations 和 python manage.py migrate
+如果不建表会报错：OperationError
+当执行这个命令后，Django 会查找INSTALLED_APPS中列出的应用的models.py文件。对于每个找到的模型，它会创建一个数据库表。如果使用的是SQLite，会注意到mysite.db这个数据文件刚好创建在设置中指定的文件夹里
+还会创建一些与django.contrib.auth应用相关的交互式查询。这里建议创建一个超级用户，因为后面会用得到，当系统提示是否创建一个superusers ，选择yes
+在授权系统中有一个超级用户，会简化后面添加Django的自动管理应用的流程。
+
+Django社区使用的是另一种形式的MVC模式，在Django中称为模型-模版-视图的MTV模式。
+
+在Django中使用python shell:
+    即使没有模版view 或视图 controller，我们依然可以通过添加一些BlogPost项来测试数据模型。如果应用由RDBMS支持，如大多数Django应用那样，则可以为每个bolg项添加一个数据记录。如果使用的是NoSQL数据库，如MongoDB 或 Google App Engine的Datastore，需要向数据库中添加其他对象、文档或实体。
+    Django提供了Python应用shell，通过这个工具，可以实例化模型，并与应用交互。在使用manage.py 中的shell命令时，Python用户会认出熟悉的交互式解析器的启动信息和提示信息。
+    python3 ./manage.py shell
+    
+    Django shell更专注于Django项目环境。可以与视图函数和数据模型交互，因为这个shell会自动设置环境变量，包括sys.psth，它可以访问Django与自己项目中的模块包，否则需要手动配置。除了标准shell外，还有其他的交互式解释器可供选择。。。
+    Django更倾向于使用功能丰富的shell，如IPython和bpython，这些shell在普通解释器基础上提供极其强大的功能。运行shell命令时，Django首先查找含有扩展功能的shell，如果没有找到则会返回标准解释器。
+    用户可以使用--plain 强制使用普通解释器 shell 的更多特性参见 http://docs.djangoproject.com/en/intro/tutorial01/#playing-with-the-api
+    ./manage.py shell --plain
+    如果想要安装有扩展功能的shell 需要easy_install 或这pip自行安装。
+    
+测试数据模型
+    启动shell之后：
+    from datetime import datetime、
+    from blog.models import BlogPost
+    BlogPost.object.all()
+    bp = BlogPost(title='test cmd-line entry',body=" yo, my 1st blog post",timestamp = datetime.now())
+    bp.save()
+    BlogPost.objects.count()
+    exec _i3 #repeat cmd #3;should have 1 object now 使用ipython 的命令重复第三行的命令
+    bp = BlogPost.object.all()[0]
+    print(bp.title)
+    print (bp.body)
+    print (bp.timestamp.ctime())
+    
+Django管理应用
+    自动管理后台应用，或者简称admin，admin是一个应用，可以帮助开发者在完成完整的UI之前验证数据处理部分的代码。
+设置admin：
+    尽管Django自带admin应用，但依然需要在配置文件中明确启用这个应用。打开settings.py,在INSTALLED_APPS元组中将首行的注释取消。第二个是可选的Django管理文档生成器。Admindocs应用通过提取Python文档字符串“docstring”来为项目自动生成文档，并让admin访问。读者想启用它当然没问题。
+    每次向项目中添加新应用是都需要执行./manage.py makemigrations 设置完成admin
+    设置完admin就要给定一个URL，这样才能访问admin页面。在自动生成的urls.py文件中，可以取消顶部的三行注释，并在底部取消注释urlpatters 的二元组全局变量
+    访问http://localhost:8000/admin就能访问到admin页面
+    创建blog/admin.py
+    from django.contrib import admin
+    from blog import models
+    
+    admin.site.register(models.BlogPost) #用admin注册BlogPost类，这样admin就可以管理数据库中这种类型的对象
+    
+使用ADMIN：
+    访问http://localhost:8000/admin 返回一个友好的登录界面，是之前创建的superuser 账户密码 （manage.py createsuperuser）
+    登录后能看见所有admin应用创建的所有类，由于admin允许操作位于数据库中的这些类，包括Users类，因此这意味着可以通过web界面添加其他内容或超级用户，而不用使用shell环境。
+    
+    更新blog/admin.py文件
+    使用新的BlogPostAdmin类
+    from django.contrib import admin
+    from blog import models
+    
+    class BlogPostAdmin(admin.ModelAdmin):
+        list_display = ('title','timestamp')
+        
+    admin.site.register(models.BlogPost,BlogPostAdmin)
+    
+    刷新admin页面，就能看到以title 和时间显示的blog
+    admin 还有其他功能，这些功能只需一两行代码就能启用，比如搜索、自定义排序、过滤等
+    
+创建博客的用户界面
+应用的用户不会使用Django shell 也不会用到admin界面。所以现在需要构建面向用户的界面，从django的角度来看，web页面应该有以下几个组件：
+一个模版，用于显示通过python类字典对象传入的信息
+一个视图函数，用于执行针对请求的核心逻辑。视图会从数据库中获取信息，并格式化显示结果。
+一个URL模式，将传入的请求映射到对应的视图中，同时也可以将参数传递给视图。
+
+Django处理请求：
+Django自底向上处理请求，它首先查找匹配的URL模式，接着调用对应的视图函数，最后将渲染好的数据通过模版展现给用户。
+构建应用：
+    因为需要一些可以观察的内容，所以先创建基本的模版
+    设计一个简单的URL模式，让Django可以访问应用
+    开发出一个视图函数原型，然后在此基础上迭代开发
+    使用这个顺序的主要原因是因为模版和URL模式不会发生较大的改变。而应用的核心是视图，所以先快速构建一个基本视图，在此基础上逐步完善。这非常符合测试驱动模型（TDD）的开发模式
+    
+创建模版：
+    Django 的模版语言非常简单。一个简单模版用于显示一篇博文：
+    <h2>{{post.title}}</h2>
+    <p>{{post.timestamp}}</p>
+    <p>{{post.body}}</p>
+    这里只是一个html文件，双花括号括起来的的标签，表示变量标签。花括号内用于显示对象的内容。在变量标签中，可以使用Python风格的点分割标识访问这些变量的属性。这些值可以是纯数据，也可以是调用对象，如果是后者，会自动调用这些对象，而无须添加圆括号“()”来表示这个函数或方法调用。
+    在变量标签中还可以使用特殊函数，它们称为过滤器。过滤函数，能在标签中立即对变量进行处理。所要做的只是在变量的右边插入一个管道符号"|"，接着跟上过滤器的名称。
+    <h2>{{post.title!title}}</h2> 调用title()过滤函数，将post.title的内容中每个单词首字母转大写
+    
+    传递给模版的变量是特殊的python字典，称为上下文(context).在前面的例子中，架设通过上下文传入的BlogPost对象为post。原来的三行分别用于获取BlogPost对象的title，body和timestamp字段。现在向模版里添加一些有用的功能。如通过上下文传入所有的博文，这样就可以通过循环来显示所有的文章。
+    <!--archive.html-->
+    {% for post in post %}
+        <h2>{{post.title}}</h2>
+        <p>{{post.timestamp}}</p>
+        <p>{{post.body}}</p>
+        <hr>
+    {% endfor %}
+    原来的那三行没有改动，只是通过一个循环将这三行包裹起来，遍历所有文章。为了做到这一点，需要引入django模块语言的另一个结构：块标签。变量标签通过一对花括号分割，而块标签通过花括号和百分号来表示：｛%...%｝它们用于向html模版中插入如循环或判断这样的逻辑。
+    将上面的代码保存在一个archive.html文件，放置在应用文件夹下新建的templates文件夹中。这样模版的路径是mysite/blog/templates/archive.html,模版的目录必须为templates。默认情况下，搜索模版是Django会自动搜索templates目录
+    创建URL模式：
+    将浏览器中的URL的路径映射到应用的不同部分。当用户通过浏览器发出一个请求，因特网会将主机名和IP地址映射起来，接着客户端在80或其他端口与服务器的地址链接起来。
+    项目的URLconf
+    服务器通过WSGI的功能，最终回将请求传递给Django。接受请求的类型（GET、POST等）和路径（URL中除了协议、主机、端口之外的内容）并传递到项目的URLconf文件（mysite/urls.py）这些信息必须通过正则表达式正确匹配到对应的路径中。否则，服务器会返回404.
+    需要直接在mysite/urls.py 中创建URL模式，但这样会混淆项目和应用的URL。我们希望在其他地方也能使用blog应用，所以需要应用负责自己的URL。为了正确分离项目和应用的URL配置，需要通过两步来定义URL映射规则并创建两个URLconf：一个用于项目，一个用户应用。
+    第一步就像启动admin那样。在自动生成的mysite/urls.py中 在urlpatterns 元组中添加path('blog/', include('blog.urls')) ，并import ：from django.urls import include
+    include() 中就是另外一个URLconf文件，include会移除当前的url路径头，路径剩下的部分传递给下游的URlconf中的patterns()函数
+    
+应用URLconf
+    通过include()包含blog.urls 让匹配blog应用的URL将剩余的部分传递到blog应用中处理。创建一个新文件mysite/blog/urls.py
+from django.urls import path
+import views
+
+urlpatterns = [
+    path('', views.archive), #默认进入blog目录，首页返回的是archive页面内容
+    path('foo/',views.foo),   #url:blog/foo 返回foo页面
+    path('bar/',views.bar),
+]
+
+创建视图函数
+views.py 
+创建伪视图函数：
+from django.shortcuts import render_to_response
+from datetime import datetime
+from blog.models import BlogPost
+# Create your views here.
+
+def archive(request):
+      post = BlogPost(title='mocktitle',body='mockbody hello',timestamp = datetime.now())
+      return render_to_response('archive.html',{'posts':[post]})
+
+def foo(request):
+      post = BlogPost(title='foo',body='foo hello',timestamp = datetime.now())#只含有单个元素的博文列表的形式传递给模版，不调用post.save()
+      return render_to_response('archive.html',{'posts':[post]}) #回到render_to_response 将数据传给模版返回生成html文件
+      
+真实的视图：
+创建一个视图函数从数据库中获取所有博文，并使用模版显示给用户。首先，将用正常的方式来完成该任务，
+1.向数据库查询所有博客条目。
+2.载入模版文件
+3.为模版创建上下文字典
+4.将上下文传递给模版
+5.将模版渲染到HTML中
+6.通过HTTP相应返回
+
+from django.template import loader
+from django.http import HttpResponse
+from blog.models import BlogPost
+def archive(request):
+      posts = BlogPost.objects.all()
+      t = loader.get_template("archive.html")
+      c = {'posts':posts}
+      return HttpResponse(t.render(c))
+
+改进输出
+    前面三部分已经得到一个可以工作的应用，有了面向用户的界面（不依赖Admin中对数据的CRUD操作）。有了可以工作的简单博客，它可以响应客户端的请求，从数据库中提取信息，向用户显示所有博文。很好，但依然可以做一些有用的改进，来实现一些实际的功能。
+    其中一个合理的方向是按时间逆序显示博文，将最新的博文显示在最上面。另一个是限制显示的数目。
+    可以向模型添加默认的排序方式，也可以向视图代码添加查询方式。
+修改查询：
+    BlogPost是数据模型类。Objects属性是模型的Manager类，其中含有all()方法来获取QuerySet，可以认为QuerySet是数据库中的每行数据。但其实QuerySet不是真实的每一行数据，因为QuerySet执行惰性迭代。
+    只有在求值时才会真正查询数据库。只需在调用order_by()方法时提供一个排序参数即可。
+    posts = BlogPost.objects.all().order_by('-timestamp') #表示按时间逆序排序（正常的是升序排序，逆序就是降序排序）
+    
+设置模型默认排序方式
+如果模型中设置首选的排序方式，其他基于Django的应用或访问这个数据的项目也会使用这个顺序。为了给模型设置默认排序，需要创建一个Meta的内部类，在其中设置一个ordering的属性
+class BlogPost(models.Model):
+      title = models.CharField(max_length=150)
+      body = models.TextField()
+      timestamp = models.DateTimeField()
+      class Meta:
+            ordering = ('-timestamp')
+            
+#将archive函数简写
+archive = lambda req:render_to_response('archive.html',
+                                     {'posts':BlogPost.objects.all()[:10]})
+                                     
+处理用户输入
+.

@@ -1,0 +1,27 @@
+Web应用遵循前面反复提到的客户端/服务器架构。这里说的Web客户端是浏览器。Web服务器，指的是运行在信息提供商的主机上的进程。这些服务器等待客户端和及其文档请求，进行相应的处理，并返回相关的数据。
+客户端可以向web服务器端发出各种不同的请求。这些请求可能包括获得一个用于查看的网页视图，或者提交一个包含特殊处理数据的表单。Web服务器端首先处理请求，然后会以特定的格式返回给客户端浏览器。
+URL 和 Cookie 可用于保存状态信息。
+
+Python Web客户端
+浏览器只是Web客户端的一种。任何一个向Web服务器发送请求来获取数据的应用程序都是“客户端”。当然，也可以创建其他的客户端，来在因特网上检索出文档和数据。创建其他客户端的一个重要原因是因为浏览器的能力有限，浏览器主要用于浏览网页内容并同其他Web站点交互。另一方面，客户端程序可以完成更多的工作，不仅可以下载数据，还可以存储、操作数据，甚至可以将其传送到另外一个地方或者传给另外一个应用。
+使用urllib模块下载或者访问Web上信息的应用程序就是简单的Web客户端。所要做的只是为程序提供一个有效的Web地址。
+
+URL组成形式: prot_sch://net_loc/path;params?query#frag
+prot_sch:网络协议或下载方案
+net_loc:服务器所在地（也许包含用户信息）可选：user:passwd@host:port  用户名和密码只有在使用FTP连接时才有可能用到，而即使使用FTP，匿名连接时也不会使用到
+path:使用/分割的文件或CGI应用
+params:可选参数
+query:连接符（&）分割的一系列键值对
+frag:指定文档内特定锚的部分
+
+urlparse模块 用于处理URL字符串。
+urlparse()、urlunparse()和urljoin() python3已经合并到urllib.parse模块中
+
+urllib.parse.urlparse(urlstr,defProtSch=None,allowFrag=None) 将url解析为URL组成部分的6个元组
+
+urlunparse()与 urlparse()功能完全相反，是将6个数据元组重新拼接为URL
+
+urljoin() 在需要处理多个相关的URL时我们需要使用join的功能，urljoin(baseurl,newurl,allowFrag=None)
+例如：urljoin('http://www.python.org/doc/FAQ.html','current/lib/lib.html')  返回newurl = 'http://www.python.org/doc/current/lib/lib.html' 只保留了net_doc及其前面的完整路径，与新路径连接起来
+
+在Python3中，urlib、urlparse、urllib2 模块都整合进了urllib单一的包中。urlib和urllib2 整合进了urllib.request模块中，urlparse模块整合进了urllib.parse中。Python3 的urllib包还包含了response、error和robotparse模块。

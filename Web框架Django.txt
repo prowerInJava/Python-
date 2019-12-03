@@ -280,4 +280,191 @@ archive = lambda req:render_to_response('archive.html',
                                      {'posts':BlogPost.objects.all()[:10]})
                                      
 处理用户输入
-.
+现在已经完成了，shell 和 admin 的用户添加博文。可以通过面向用户的演示功能查看数据。接下来处理普通用户创建博客的功能。
+添加HTML表单，让用户可以输入数据。
+插入（URL，视图）这样的URLconf项
+创建视图来处理用户的输入。
+第一步：为用户创建表单。
+<!--archive.html-->
+<form action="/blog/create/" method="post">
+	Title:
+	<input type=text name=title><br>
+	Body:
+	<textarea name=body rows=3 cols=6></textarea><br>
+	<input type=submit>
+</form>
+<hr>
+在开发时将这些内容放在同一个模版中是为了可以在同一个页面上显示用户的输入和博文。
+将函数命名为create_blogpost() 向URLconf中添加path('create/',blog.views.create_blogpost),
+
+from django.shortcuts import render_to_response,render
+def archive(request):
+      posts = BlogPost.objects.all() #.order_by('timestamp') #按时间升序排序
+      #t = loader.get_template("archive.html")
+      c = {'posts':posts,}
+      return  render(request,'archive.html',c)
+from django.http import HttpResponseRedirect
+
+def create_blogpost(request):
+      if request.method =='POST':
+            BlogPost(
+                  title = request.POST.get('title'),
+                  body = request.POST.get('body'),
+                  timestamp = datetime.now(),
+                  ).save()
+      return HttpResponseRedirect('/blog/')            
+跨站点请求伪造：
+    以上应用调试完成，能看到一个form表单输入内容提交后，会返回403
+    Forbidden (403)
+    CSRF verification failed. Request aborted.
+    （Django有数据保留特性。这不允许不安全的POST通过跨站点请求伪造（Cross-Site Request Forgery，CRSF））来进行攻击。
+    对于这个应用需要修改两个地方，这两处都需要向已有的代码中添加一些代码。
+    1.向表单中添加CSRF标记｛%csrf_token%｝,让这些POST回到对应的页面。<form action="/blog/create/" method="post">{% csrf_token %}
+    2.通过模版发送向这些标记请求的上下文实例。
+    请求上下文实际上是一个字典，它含有关于请求的信息。django.template.RequestContext总是通过含有内置的CSRF保护进行处理。
+    mysite/bolg/views.py 修改archive()视图函数的return一行，python3 只有render 可以避免csrf错误。
+    from django.shortcuts import render_to_response,render
+    return  render(request,'archive.html',{'posts':posts})
+
+表单和模型表单
+    Django表单简介：
+    除了需要处理CSRF这样的一次性工作之外，前面集成进简单入表单的散步工作看起来太费力且重复。毕竟这是严格遵循DRY原则的Django，应用中最有可能重复的部分是数据模型嵌入到其他地方的时候。在表单中可以见到这样的名称和标题。
+	Title:
+	<input type=text name=title><br>
+	Body:
+	<textarea name=body rows=3 cols=6></textarea><br>
+    在create_blogpost()视图中，可以见到同样的内容：
+    BlogPost(
+                  title = request.POST.get('title'),
+                  body = request.POST.get('body'),
+                  timestamp = datetime.now(),
+                  ).save()
+                  
+    关键是在定义数据模型后，应该只有一个地方能见到title、body、以及timestamp。单独基于数据模型，直接希望web框架带有表单的字段：Django表单
+    from django import forms
+    class BlogPostFrom(forms.Form):
+        title = forms.CharField(max_length=150)
+        body = forms.CharField(widge=forms.Textarea)
+        timestamp = forms.DateTimeField()
+        
+    然后在HTML表单中，指定HTML文本区域元素含有三行，60个字符宽:
+    在 BlogPostFrom中指定
+    body = forms.CharField(widget=forms.Textarea(attrs={'rows':3,'cols':60}))
+    
+    模型表单示例：
+    BlogPostFrom 和 BlogPost违反DRY 因为与BlogPost非常相像。 每次修改了models.py 文件都需要重新manage.py makemigrations   和 migrate
+    如果一个表单字段完全匹配一个数据模型，可以通过Django ModelForm更好的完成任务。
+    class BlogPostForm(forms.ModelForm):
+        class Meta:
+            model = BlogPost
+    通过Form还到ModelForm ，可以定一个Meta类，它表示这个表单基于哪些数据模型。当生成HTML表单时，会含有对应数据模型的所有属性字段。
+    如果想改为某一个字段可编程的方式添加内容。只需要添加额外的一个名为exclude的属性，从生成的HTML中移除这个表单项。向blog/models.py文件中添加相应的导入语句，在BlogPost定义的后面添加完整的BlogPostForm类
+from django.db import models
+from django import forms
+# Create your models here.
+
+class BlogPost(models.Model):
+      title = models.CharField(max_length=150)
+      body = models.TextField()
+      timestamp = models.DateTimeField()
+      class Meta:
+            ordering = ('-timestamp',)
+
+class BlogPostForm(forms.ModelForm):
+      class Meta:
+            model = BlogPost
+            exclude = ('timestamp',)
+
+BlogPost 是models.Model的子类，相当于DB内的table，常用的数据类型:
+CharField(max_length=...) 字符串
+DatetimeField()           时间
+IntergerField()           整型
+TextField()               大量文本
+FileField(upload_to = '') 上传文本
+
+python manage.py shell 
+需要使用shell创建BlogPostForm 实例
+In [1]: from blog.models import BlogPostForm
+In [2]: form  = BlogPostForm()
+
+In [3]: form
+Out[3]: <BlogPostForm bound=False, valid=Unknown, fields=(title;body)>
+
+In [4]: str(form)
+Out[4]: '<tr><th><label for="id_title">Title:</label></th><td><input type="text" name="title" maxlength="150" required id="id_title"></td></tr>\n<tr><th><label for="id_body">Body:</label></th><td><textarea name="body" cols="40" rows="10" required id="id_body">\n</textarea></td></tr>'
+
+In [5]: exit
+
+HTML页面的表单改成：
+<form action="/blog/create/" method="post">{% csrf_token %}
+	<table>{{form}}</table><br>
+	<input type=submit>
+</form>
+
+修改blog/views.py
+def archive(request):
+      posts = BlogPost.objects.all() #.order_by('timestamp') #按时间升序排序
+      #t = loader.get_template("archive.html")
+      c = {'posts':posts,'form':BlogPostForm()}
+      return  render(request,'archive.html',c)
+      
+from blog.models import BlogPostForm
+def create_blogpost(request):
+    if request.method == 'POST':
+            form = BlogPostForm(request.POST)
+            '''
+            #因为timestamp需要另外处理所以使用下面的代码
+            if form.is_valid():
+                form.save()
+                '''
+            if form.is_valid():
+                  post = form.save(commit=False)
+                  post.timestamp=datetime.now()
+                  post.save()
+                  
+      return HttpResponseRedirect('/blog/')
+
+
+
+进阶视图:
+    通用视图，目前为止，当应用需要控制器或逻辑时，会创建自定义视图。但Django严格遵循DRY原则，因此会使用类似render_to_response()这样的快捷方式。
+    通用视图非常强大，也很抽象，使用通用视图后，就无须编写任何视图。只须将其连接到URLconf中，传递一些所需要的数据，甚至无须在views.py中编辑/创建任何代码。只须给予读者足够的背景知识可以让读者使用通用视图了。
+半通用视图：
+    由于应用必须警惕发送过来的CSRF，因此前面发送请求上下文的实例非常啰嗦。同时它对初学者也很不人性化。
+    真正的使用通用视图：
+    找到项目的Urlconf（mysite/urls.py）使用redirect_to 设定URL的根目录  django 2.2 报错：ModuleNotFoundError: No module named 'django.views.generic.simple'
+    
+改善外观：
+    创建CSS文件：
+    创建基模版，并使用模版继承
+<!--base.html-->
+Generic welcome to your web page[Login - Help - FAQ]
+<h1> Blog Central </h1>
+{% block content %}
+{% endblock %}
+&copy;2011 your company [About - Contact]
+</body>
+</html>
+
+这段代码将常见的标题资源，如公司logo、签入、/签出以及其他链接等，放在页面的顶部。而在底部，会有版权信息、其他链接等。这里重要的代码是中间部分的block标签。这个标签定义了一个由子模版控制的命名区域。
+在index.html 导入base.html模版extends "base.html"
+<!--index.html-->
+{% extends "base.html"%}
+{% block content %}
+	{% for post in posts %}
+		<h2>{{post.title}}</h2>
+		<p>{{post.timestamp}}</p>
+		<p>{{post.body}}</p>
+		<hr>
+	{% endfor %}
+{% endblock %}
+
+def archive(request):
+      posts = BlogPost.objects.all()[:10] #.order_by('timestamp') #按时间升序排序
+      #t = loader.get_template("archive.html")
+      c = {'posts':posts,'form':BlogPostForm()}
+      return  render(request,'index.html',c)  #使用index.html作为url
+      
+单元测试
+Django通过扩展Python自带的单元测试模块来提供测试功能。Django还可以测试文档字符串（即docstring）,称为文档测试（doctest），可以在Django文档页面的测试部分了解到。
+创建单元测试，在创建应用是Django会自动生成tests.py文件。

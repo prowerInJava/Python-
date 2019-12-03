@@ -5,6 +5,7 @@
 
 <ul>
   <li><a href='多线程编程'>多线程编程</a></li>
-  <li>a href='GUI编程.txt'>GUI编程</a><li>
-   <li></li>
+  <li><a href='GUI编程.txt'>GUI编程</a><li>
+  <li><a href='python网络编程.txt'>python网络编程</a></li>
+  <li><a href='Microsoft%20Office%20编程'>Microsoft office编程</a></li>
 </ul>

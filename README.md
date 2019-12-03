@@ -10,6 +10,6 @@
   <li><a href='Microsoft%20Office%20编程'>Microsoft office编程</a></li>
   <li><a href='数据库编程.txt'>数据库编程</a></li>
   <li><a href='英特网客户端编程'>英特网客户端编程</a></li>
-  <li><a href='WEB客户端和服务器.txt'>WEB客户端和服务器</a></li>W
-  <li><a href='Web框架Django.txt'>eb框架Django.txt</a></li>
+  <li><a href='WEB客户端和服务器.txt'>WEB客户端和服务器</a></li>
+  <li><a href='Web框架Django.txt'>Web框架Django.txt</a></li>
 </ul>

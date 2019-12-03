@@ -5,6 +5,6 @@
 
 <ul>
   <li><a href='多线程编程'>多线程编程</a></li>
-  <li>a href='GUI编程.txt'>多线程编程<li>
+  <li>a href='GUI编程.txt'>GUI编程</a><li>
    <li></li>
 </ul>
